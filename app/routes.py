@@ -214,6 +214,7 @@ class Listing(Resource):
             l = {"listing_id": listing.id,
                  "quantity": listing.quantity, "expiry": listing.expiry}
             listing_list.append(l)
+        print(listing_list)
         return {"listing": listing_list}
     #
     # quantity = db.Column(db.Integer)
@@ -247,10 +248,14 @@ class Listing(Resource):
 class Order(Resource):
     def get(self):
         orders = Orders.query.all()
+        print(orders)
         order_list = []
         for order in orders:
-            l = {"donor": order.donor, "beneficiary": order.beneficiary}
+            l = {"donor": order.donor.name,
+                 "beneficiary": order.beneficiary.name}
+            print(l)
             order_list.append(l)
+        print(order_list)
         return {"orders": order_list}
     #
     # quantity = db.Column(db.Integer)
