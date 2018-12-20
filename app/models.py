@@ -41,9 +41,9 @@ class Beneficiary(db.Model):
 class Address(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     donor_id = db.Column(db.Integer, db.ForeignKey('donor.id'),
-                          nullable=False)
-    beneficiary_id = db.Column(db.Integer, db.ForeignKey('beneficiary.id'),
                          nullable=False)
+    beneficiary_id = db.Column(db.Integer, db.ForeignKey('beneficiary.id'),
+                               nullable=False)
     city = db.Column(db.String(20))
     street = db.Column(db.String(20))
     country = db.Column(db.String(20))
@@ -54,7 +54,7 @@ class Reviews(db.Model):
     donor_id = db.Column(db.Integer, db.ForeignKey('donor.id'),
                          nullable=False)
     beneficiary_id = db.Column(db.Integer, db.ForeignKey('beneficiary.id'),
-                         nullable=False)
+                               nullable=False)
     stars = db.Column(db.String(1))
     review = db.Column(db.Text())
 
@@ -65,17 +65,16 @@ class Orders(db.Model):
                          nullable=False)
     beneficiary_id = db.Column(db.Integer, db.ForeignKey('beneficiary.id'),
                                nullable=False)
-    listing_id = db.Column(db.Integer, db.ForeignKey('listings.id'), nullable=False)
+    listing_id = db.Column(db.Integer, db.ForeignKey(
+        'listings.id'), nullable=False)
 
 
 class Listings(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    donor_id = db.Column(db.Integer, db.ForeignKey('donor.id'),
-                         nullable=False)
-    orders = db.relationship('Orders', backref='listing', lazy=True)
+    id = db.Column(db.Integer, primary_key=True, nullable=False)
     quantity = db.Column(db.Integer)
     expiry = db.Column(db.String(20))
     description = db.Column(db.String(250))
     type = db.Column(db.String(10))
     image = db.Column(db.String(100))
-#   title = db.Column(db.String(40))
+    orders = db.relationship('Orders', backref='listing', lazy=True)
+    donor_id = db.Column(db.Integer, db.ForeignKey('donor.id'))

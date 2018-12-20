@@ -41,7 +41,8 @@ def token_required(f):
 
         try:
             data = jwt.decode(token, app.config['SECRET_KEY'])
-            current_user = Beneficiary.query.filter_by(username=data['username']).first()
+            current_user = Beneficiary.query.filter_by(
+                username=data['username']).first()
         except:
             return {'message': 'Token is invalid!'}, 403
 
@@ -100,7 +101,8 @@ def createdonor():
     if not donor:
         return "not json"
     print(donor)
-    password_hash = bcrypt.generate_password_hash(donor.get('password')).decode('utf-8')
+    password_hash = bcrypt.generate_password_hash(
+        donor.get('password')).decode('utf-8')
     username = donor.get('email').split('@')[0]
     check_username = username_in_database_donor(username)
     if check_username:
@@ -111,7 +113,8 @@ def createdonor():
     u = Donor(name=donor.get('name'), email=donor.get('email'), phone_no=donor.get('phone_no'), username=username,
               password_hash=password_hash)
     if donor.get('address'):
-        address = Address(donor=u, city=donor.get('city'), street=donor.get('street'), country=donor.get('country'))
+        address = Address(donor=u, city=donor.get('city'), street=donor.get(
+            'street'), country=donor.get('country'))
         db.session.add(address)
     db.session.add(u)
     db.session.commit()
@@ -160,7 +163,8 @@ def createbeneficiary():
     if not beneficiary:
         return "not json"
     print(beneficiary)
-    password_hash = bcrypt.generate_password_hash(beneficiary.get('password')).decode('utf-8')
+    password_hash = bcrypt.generate_password_hash(
+        beneficiary.get('password')).decode('utf-8')
     username = beneficiary.get('email').split('@')[0]
     check_username = username_in_database_beneficiary(username)
     if check_username:
@@ -169,9 +173,10 @@ def createbeneficiary():
             check_username = username_in_database_beneficiary(username)
     print(username)
     u = Beneficiary(name=beneficiary.get('name'), email=beneficiary.get('email'), phone_no=beneficiary.get('phone_no'), username=username,
-              password_hash=password_hash, type=1)
+                    password_hash=password_hash, type=1)
     if beneficiary.get('address'):
-        address = Address(beneficiary=u, city=beneficiary.get('city'), street=beneficiary.get('street'), country=beneficiary.get('country'))
+        address = Address(beneficiary=u, city=beneficiary.get(
+            'city'), street=beneficiary.get('street'), country=beneficiary.get('country'))
         db.session.add(address)
     db.session.add(u)
     db.session.commit()
@@ -187,12 +192,14 @@ class Login(Resource):
         if not user_data:
             return {"not": "json"}
         if user_data.get('type') == 'beneficiary':
-            user = Beneficiary.query.filter_by(email=user_data.get('email')).first()
+            user = Beneficiary.query.filter_by(
+                email=user_data.get('email')).first()
         else:
             user = Donor.query.filter_by(email=user_data.get('email')).first()
         if user and bcrypt.check_password_hash(user.password_hash, user_data.get('password')):
             token = jwt.encode(
-                {'username': user.username, 'name': user.name, 'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=20)},
+                {'username': user.username, 'name': user.name,
+                    'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=20)},
                 app.config['SECRET_KEY'])
             return {'token': token.decode('UTF-8')}
         else:
@@ -204,7 +211,8 @@ class Listing(Resource):
         listings = Listings.query.all()
         listing_list = []
         for listing in listings:
-            l = {"listing_id": listing.id, "quantity": listing.quantity, "expiry": listing.expiry}
+            l = {"listing_id": listing.id,
+                 "quantity": listing.quantity, "expiry": listing.expiry}
             listing_list.append(l)
         return {"listing": listing_list}
     #
@@ -221,13 +229,16 @@ class Listing(Resource):
         listing = request.json
         if not listing:
             return {"not": "json"}
-        print(token_data.get('username'))
-        donor = Donor.query.filter_by(username=token_data.get('username')).first()
+        print(token_data.get('name'))
+        donor = Donor.query.filter_by(
+            username=token_data.get('username')).first()
         print(listing)
+        print(donor.name)
+        print(donor.id)
         # print(donor.username, "xxx")
         l = Listings(quantity=listing.get('quantity'), expiry=listing.get('expiry'),
-                    description=listing.get('description'), type=listing.get('type'),
-                    image=listing.get('image'), donor=donor)
+                     description=listing.get('description'), type=listing.get('type'),
+                     image=listing.get('image'), donor_id=donor.id)
         db.session.add(l)
         db.session.commit()
         return {"listing": "added"}
@@ -256,7 +267,8 @@ class Order(Resource):
         if not order:
             return {"not": "json"}
         donor = Donor.query.get(order.get('donor_id'))
-        beneficiary = Beneficiary.query.filter_by(username=order.get('beneficiary_username')).first()
+        beneficiary = Beneficiary.query.filter_by(
+            username=order.get('beneficiary_username')).first()
         listing = Listings.query.get(order.get('listing_id'))
         o = Orders(donor=donor, beneficiary=beneficiary, listing=listing)
         db.session.add(o)
