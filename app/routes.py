@@ -282,6 +282,51 @@ class Order(Resource):
         return {"orders": "added"}
 
 
+class DonorListings(Resource):
+    def get(self):
+        return {"testing": "donorlistings"}
+
+    @token_required
+    def post(self):
+        token = request.headers.get("x-access-token")
+        token_data = jwt.decode(token, app.config['SECRET_KEY'])
+        username = token_data.get("username")
+        donor = Donor.query.filter_by(username=username).first()
+        listings = Listings.query.filter_by(donor_id=donor.id).all()
+        parsed_listings = []
+        d = dict()
+        # first parsing individual listings. overcomes object 'Listings' cannot be jsonify.
+        for listing in listings:
+            l = {"listing_id": listing.id,
+                 "quantity": listing.quantity, "expiry": listing.expiry, "description": listing.description,
+                 "type": listing.type, "image": listing.image, "donor_id": listing.donor_id}
+            parsed_listings.append(l)
+
+        count = 0
+        all_listings = []
+        print(listings)
+        # giving structure
+        for listings in parsed_listings:
+            d[count] = listings
+            print(listings)
+            all_listings.append(d)
+            d = {}
+            count = count + 1
+        print(all_listings)
+        print(jsonify(all_listings))
+        return {"listings": all_listings}
+
+
+# @app.route('/testing', methods=['POST'])
+# @token_required
+# def testing():
+#     token = request.header.get("x-access-token")
+#     token_data = jwt.decode(token, app.config['SECRET_KEY'])
+#     username = token_data.get("username")
+#     donor = Donor.query.filter_by(username=username).first()
+#     listings = Listing.query.filter_by(donor_id=donor.id)
+#     print(listings)
 api.add_resource(Login, '/login')
 api.add_resource(Listing, '/listing')
 api.add_resource(Order, '/order')
+api.add_resource(DonorListings, '/donorlistings')
