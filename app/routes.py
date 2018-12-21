@@ -283,11 +283,11 @@ class Order(Resource):
 
 
 class DonorListings(Resource):
-    def get(self):
-        return {"testing": "donorlistings"}
+#    def post(self):
+#        return {"testing": "donorlistings"}
 
     @token_required
-    def post(self):
+    def get(self):
         token = request.headers.get("x-access-token")
         token_data = jwt.decode(token, app.config['SECRET_KEY'])
         username = token_data.get("username")
