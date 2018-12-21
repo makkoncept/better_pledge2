@@ -212,7 +212,8 @@ class Listing(Resource):
         listing_list = []
         for listing in listings:
             l = {"listing_id": listing.id,
-                 "quantity": listing.quantity, "expiry": listing.expiry}
+                 "quantity": listing.quantity, "expiry": listing.expiry, "description": listing.description,
+                 "type": listing.type, "image": listing.image, "donor_id": listing.donor_id}
             listing_list.append(l)
         print(listing_list)
         return {"listing": listing_list}
