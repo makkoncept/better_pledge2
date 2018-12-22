@@ -349,6 +349,28 @@ class UpdateListing(Resource):
         db.session.commit()
         return {"listing": "updated"}
 
+class DeleteListing(Resource):
+    # very prone to exploitation. anyone can delete anything.
+    @token_required
+    def post(self):
+        listing_id = request.args.get("listing_id")
+        if not listing_id:
+            return {"listing_id": listing_id}
+        token = request.headers.get("x-access-token")
+        token_data = jwt.decode(token, app.config['SECRET_KEY'])
+        username = token_data.get("username")
+        donor = Donor.query.filter_by(username=username).first()
+        donor_listings = Listings.query.filter_by(donor_id=donor.id).all()
+        #Listings.query.filter_by(id=listing_id).delete()
+        listing = Listings.query.filter_by(id=listing_id).first()
+        if not listing:
+            return {"no listing available": "with that listing_id"}
+        if listing not in donor_listings:
+            return {"permission": "denied"}
+        print(listing.description)
+        db.session.delete(listing)
+        db.session.commit()
+        return {"listing": "deleted"}
 
 # @app.route('/testing', methods=['POST'])
 # @token_required
@@ -365,4 +387,5 @@ api.add_resource(Order, '/order')
 api.add_resource(DonorListings, '/donorlistings')
 api.add_resource(SingleListing, '/singlelisting')
 api.add_resource(UpdateListing, '/updatelisting')
+api.add_resource(DeleteListing, '/deletelisting')
 
