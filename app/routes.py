@@ -199,7 +199,7 @@ class Login(Resource):
         if user and bcrypt.check_password_hash(user.password_hash, user_data.get('password')):
             token = jwt.encode(
                 {'username': user.username, 'name': user.name,
-                    'exp': datetime.datetime.utcnow() + datetime.timedelta(minutes=20)},
+                    'exp': datetime.datetime.utcnow() + datetime.timedelta(days=365)},
                 app.config['SECRET_KEY'])
             return {'token': token.decode('UTF-8')}
         else:
@@ -318,9 +318,9 @@ class DonorListings(Resource):
 
 class SingleListing(Resource):
     def get(self):
-        listing_id = request.headers.get("listing_id")
+        listing_id = request.args.get("listing_id")
         if not listing_id:
-            return {"listing_id": "not available"}
+            return {"listing_id": listing_id}
         listing = Listings.query.get(listing_id)
         if not listing:
             return {"no listing available": "with that listing_id"}
