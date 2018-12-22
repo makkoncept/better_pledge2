@@ -8,4 +8,4 @@ Procfile
 .idea
 .vscode
 migrations
-
+app.db
