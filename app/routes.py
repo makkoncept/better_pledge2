@@ -332,7 +332,8 @@ class SingleListing(Resource):
 
 class UpdateListing(Resource):
     def post(self):
-        listing_id = request.headers.get("listing_id")
+        # don't know why headers is not working on deployed version. will probably look later.
+        listing_id = request.args.get("listing_id")
         update_listing = request.json
         if not listing_id:
             return {"listing_id": "not received"}
