@@ -9,3 +9,5 @@ Procfile
 .vscode
 migrations
 app.db
+app/app.db
+*.db
