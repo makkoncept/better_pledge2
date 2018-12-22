@@ -283,8 +283,8 @@ class Order(Resource):
 
 
 class DonorListings(Resource):
-#    def post(self):
-#        return {"testing": "donorlistings"}
+    #    def post(self):
+    #        return {"testing": "donorlistings"}
 
     @token_required
     def get(self):
@@ -316,6 +316,7 @@ class DonorListings(Resource):
         print(jsonify(all_listings))
         return {"listings": all_listings}
 
+
 class SingleListing(Resource):
     def get(self):
         listing_id = request.args.get("listing_id")
@@ -325,8 +326,28 @@ class SingleListing(Resource):
         if not listing:
             return {"no listing available": "with that listing_id"}
         return {"listing_id": listing.id,
-             "quantity": listing.quantity, "expiry": listing.expiry, "description": listing.description,
-             "type": listing.type, "image": listing.image, "donor_id": listing.donor_id}
+                "quantity": listing.quantity, "expiry": listing.expiry, "description": listing.description,
+                "type": listing.type, "image": listing.image, "donor_id": listing.donor_id}
+
+
+class UpdateListing(Resource):
+    def post(self):
+        listing_id = request.headers.get("listing_id")
+        update_listing = request.json
+        if not listing_id:
+            return {"listing_id": "not received"}
+        listing = Listings.query.get(listing_id)
+        if not listing:
+            return {"no listing available": "with that listing_id"}
+        listing.quantity = update_listing.get("quantity")
+        listing.description = update_listing.get("description")
+        listing.expiry = update_listing.get("expiry")
+        listing.type = update_listing.get("type")
+        listing.image = update_listing.get("image")
+        listing.description = update_listing.get("description")
+        db.session.commit()
+        return {"listing": "updated"}
+
 
 # @app.route('/testing', methods=['POST'])
 # @token_required
@@ -342,3 +363,5 @@ api.add_resource(Listing, '/listing')
 api.add_resource(Order, '/order')
 api.add_resource(DonorListings, '/donorlistings')
 api.add_resource(SingleListing, '/singlelisting')
+api.add_resource(UpdateListing, '/updatelisting')
+
