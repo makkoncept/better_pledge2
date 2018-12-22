@@ -324,10 +324,9 @@ class SingleListing(Resource):
         listing = Listings.query.get(listing_id)
         if not listing:
             return {"no listing available": "with that listing_id"}
-        l = {"listing_id": listing.id,
+        return {"listing_id": listing.id,
              "quantity": listing.quantity, "expiry": listing.expiry, "description": listing.description,
              "type": listing.type, "image": listing.image, "donor_id": listing.donor_id}
-        return {"listing": l}
 
 # @app.route('/testing', methods=['POST'])
 # @token_required
