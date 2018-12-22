@@ -316,6 +316,18 @@ class DonorListings(Resource):
         print(jsonify(all_listings))
         return {"listings": all_listings}
 
+class SingleListing(Resource):
+    def get(self):
+        listing_id = request.headers.get("listing_id")
+        if not listing_id:
+            return {"listing_id": "not available"}
+        listing = Listings.query.get(listing_id)
+        if not listing:
+            return {"no listing available": "with that listing_id"}
+        l = {"listing_id": listing.id,
+             "quantity": listing.quantity, "expiry": listing.expiry, "description": listing.description,
+             "type": listing.type, "image": listing.image, "donor_id": listing.donor_id}
+        return {"listing": l}
 
 # @app.route('/testing', methods=['POST'])
 # @token_required
@@ -330,3 +342,4 @@ api.add_resource(Login, '/login')
 api.add_resource(Listing, '/listing')
 api.add_resource(Order, '/order')
 api.add_resource(DonorListings, '/donorlistings')
+api.add_resource(SingleListing, '/singlelisting')
