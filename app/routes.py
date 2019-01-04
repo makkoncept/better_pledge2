@@ -369,6 +369,7 @@ class DeleteListing(Resource):
 
 
 class Profile(Resource):
+    @token_required
     def get(self):
         token = request.headers.get("x-access-token")
         token_data = jwt.decode(token, app.config['SECRET_KEY'])
