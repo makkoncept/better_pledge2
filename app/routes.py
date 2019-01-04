@@ -192,7 +192,7 @@ class Login(Resource):
             type = 'donor'
         if user and bcrypt.check_password_hash(user.password_hash, user_data.get('password')):
             token = jwt.encode(
-                {'username': user.username, 'name': user.name, 'type': type,
+                {'username': user.username, 'name': user.name, 'type': type, 'id': user.id,
                     'exp': datetime.datetime.utcnow() + datetime.timedelta(days=365)},
                 app.config['SECRET_KEY'])
             return {'token': token.decode('UTF-8')}
@@ -386,6 +386,42 @@ class Profile(Resource):
         return {'user': u}
 
 
+# TODO: update address too
+class UpdateUser(Resource):
+    @token_required
+    def post(self):
+        updated_user = request.json
+        token = request.headers.get("x-access-token")
+        token_data = jwt.decode(token, app.config['SECRET_KEY'])
+        type = token_data.get('type')
+        username = token_data.get("username")
+        if type == 'donor':
+            user = Donor.query.filter_by(username=username).first()
+            check_username = Donor.query.filter_by(username=updated_user['username']).first()
+            if check_username:
+                if check_username.id != user.id:
+                    return {'message': 'username already exist'}
+        elif type == 'beneficiary':
+            user = Beneficiary.query.filter_by(username=username).first()
+            check_username = Beneficiary.query.filter_by(username=updated_user['username']).first()
+            if check_username.id != user.id:
+                return {'message': 'username already exist'}
+ 
+        # u = {'name': user.name, 'password_hash': user.password_hash, 'id': user.id, 'phone_no': user.phone_no,
+        #      'email': user.email, 'username': user.username}
+
+        user.name = updated_user.get('name')
+        user.phone_no = updated_user.get('phone_no')
+        user.username = updated_user.get('username')
+        db.session.commit()
+        token = jwt.encode(
+                {'username': user.username, 'name': user.name, 'type': type, 'id': user.id,
+                    'exp': datetime.datetime.utcnow() + datetime.timedelta(days=365)},
+                app.config['SECRET_KEY'])
+        return {'token': token.decode('UTF-8')}
+
+
+
 api.add_resource(Login, '/login')
 api.add_resource(Listing, '/listing')
 api.add_resource(Order, '/order')
@@ -394,3 +430,4 @@ api.add_resource(SingleListing, '/singlelisting')
 api.add_resource(UpdateListing, '/updatelisting')
 api.add_resource(DeleteListing, '/deletelisting')
 api.add_resource(Profile, '/user')
+api.add_resource(UpdateUser, '/user/update')
