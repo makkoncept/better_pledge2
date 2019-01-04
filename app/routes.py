@@ -55,14 +55,6 @@ def token_required(f):
 def home():
     return jsonify({'message': 'Welcome to the api'})
 
-#
-# @app.route('/login', methods=['GET'])
-# @login_required
-# def login():
-#     auth = request.authorization
-#     token = jwt.encode({'user': auth.get('name'), 'exp': datetime.datetime.utcnow()+datetime.timedelta(minutes=20)}, app.config['SECRET_KEY'])
-#     return jsonify({'message': 'you are logged in', 'token': token.decode('UTF-8')})
-
 
 @app.route('/createuser', methods=['POST'])
 def create():
@@ -194,11 +186,13 @@ class Login(Resource):
         if user_data.get('type') == 'beneficiary':
             user = Beneficiary.query.filter_by(
                 email=user_data.get('email')).first()
+            type = 'beneficiary'
         else:
             user = Donor.query.filter_by(email=user_data.get('email')).first()
+            type = 'donor'
         if user and bcrypt.check_password_hash(user.password_hash, user_data.get('password')):
             token = jwt.encode(
-                {'username': user.username, 'name': user.name,
+                {'username': user.username, 'name': user.name, 'type': type,
                     'exp': datetime.datetime.utcnow() + datetime.timedelta(days=365)},
                 app.config['SECRET_KEY'])
             return {'token': token.decode('UTF-8')}
@@ -349,6 +343,7 @@ class UpdateListing(Resource):
         db.session.commit()
         return {"listing": "updated"}
 
+
 class DeleteListing(Resource):
     # very prone to exploitation. anyone can delete anything.
     @token_required
@@ -361,7 +356,7 @@ class DeleteListing(Resource):
         username = token_data.get("username")
         donor = Donor.query.filter_by(username=username).first()
         donor_listings = Listings.query.filter_by(donor_id=donor.id).all()
-        #Listings.query.filter_by(id=listing_id).delete()
+        # Listings.query.filter_by(id=listing_id).delete()
         listing = Listings.query.filter_by(id=listing_id).first()
         if not listing:
             return {"no listing available": "with that listing_id"}
@@ -372,15 +367,24 @@ class DeleteListing(Resource):
         db.session.commit()
         return {"listing": "deleted"}
 
-# @app.route('/testing', methods=['POST'])
-# @token_required
-# def testing():
-#     token = request.header.get("x-access-token")
-#     token_data = jwt.decode(token, app.config['SECRET_KEY'])
-#     username = token_data.get("username")
-#     donor = Donor.query.filter_by(username=username).first()
-#     listings = Listing.query.filter_by(donor_id=donor.id)
-#     print(listings)
+
+class Profile(Resource):
+    def get(self):
+        token = request.headers.get("x-access-token")
+        token_data = jwt.decode(token, app.config['SECRET_KEY'])
+        type = token_data.get('type')
+        username = token_data.get("username")
+        if type == 'donor':
+            user = Donor.query.filter_by(username=username).first()
+        elif type == 'beneficiary':
+            user = Beneficiary.query.filter_by(username=username).first()
+
+        u = {'name': user.name, 'password_hash': user.password_hash, 'id': user.id, 'phone_no': user.phone_no,
+             'email': user.email, 'username': user.username}
+
+        return {'user': u}
+
+
 api.add_resource(Login, '/login')
 api.add_resource(Listing, '/listing')
 api.add_resource(Order, '/order')
@@ -388,4 +392,4 @@ api.add_resource(DonorListings, '/donorlistings')
 api.add_resource(SingleListing, '/singlelisting')
 api.add_resource(UpdateListing, '/updatelisting')
 api.add_resource(DeleteListing, '/deletelisting')
-
+api.add_resource(Profile, '/user')
